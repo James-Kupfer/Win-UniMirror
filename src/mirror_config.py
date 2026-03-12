@@ -46,7 +46,6 @@ from typing import List
 # ---------------------------------------------------------------------------
 # Internal constants
 # ---------------------------------------------------------------------------
-
 #: Absolute path to the project root (one level above this file).
 SCRIPT_BASE_DIR: str = os.path.abspath(
     os.path.join(os.path.dirname(__file__), os.pardir)
@@ -310,7 +309,7 @@ def extract_failed_paths(log_path: str, sources: List[str]) -> list[str]:
         return []
 
     src_norms = [
-        os.path.normcase(os.path.abspath(s.strip('"\'))) for s in sources
+        os.path.normcase(os.path.abspath(s.strip('"'))) for s in sources
     ]
     failed: set[str] = set()
 

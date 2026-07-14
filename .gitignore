@@ -1,2 +1,12 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.ruff_cache/
+
 src/mirror_failures_to_exclude.txt
 /logs
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,10 +1,12 @@
-# Windows Robocopy Mirror
+# Win-UniMirror
+
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
 A Windows directory mirroring utility that uses `robocopy` for fast, reliable
 one-way sync from configurable source folders to a destination root.
 
 All configuration lives in `src/mirror_config.py`. The system is driven by a
-single batch script (`run_mirror.bat`) that calls Python for configuration,
+single batch script (`Run_Mirror.bat`) that calls Python for configuration,
 pre-flight filename sanitization, and post-run failure tracking.
 
 ---
@@ -27,11 +29,11 @@ pre-flight filename sanitization, and post-run failure tracking.
 ## Project Structure
 
 ```
-<project_root>/
+Win-UniMirror/
 ├── src/
 │   └── mirror_config.py              # All settings, sanitization, and helpers
-├── run_mirror.bat                    # Main launcher
-├── mirror_failures_to_exclude.txt    # Auto-generated; tracks persistent failures
+├── Run_Mirror.bat                    # Main launcher
+├── src/mirror_failures_to_exclude.txt  # Auto-generated; tracks persistent failures
 └── logs/                             # Auto-generated; timestamped robocopy logs
 ```
 
@@ -43,6 +45,69 @@ pre-flight filename sanitization, and post-run failure tracking.
 |---|---|
 | **Windows** | Robocopy is built into Windows Vista and later |
 | **Python 3.10+** | Standard library only; no third-party packages required |
+
+---
+
+## Quick Start
+
+### 1. Clone or download the repo
+
+```bash
+git clone https://github.com/James-Kupfer/Win-UniMirror.git
+cd Win-UniMirror
+```
+
+### 2. Configure your settings
+
+Open `src\mirror_config.py` and update the `MirrorSettings` dataclass:
+
+- Set `source_folders` to the directories you want to mirror.
+- Set `mirror_root` to your destination (e.g. a network drive or cloud-sync folder).
+- Review `exclude_dirs` and `exclude_files` and remove or add entries as needed.
+- Leave `max_bytes = 0` for no file size limit, or set a byte value to cap it.
+
+> The defaults committed in this repo (`C:\Documents`, `C:\Beaker`,
+> `O:\ProtonDrive\My files`, etc.) are personal example paths — replace them
+> with your own before running.
+
+### 3. Run the mirror
+
+From the repo root, double-click:
+
+```
+Run_Mirror.bat
+```
+
+What happens automatically:
+
+1. Settings are loaded from `mirror_config.py`.
+2. Each source folder is scanned and any shell-problematic filenames are renamed.
+3. Robocopy mirrors each source folder to a matching sub-folder under `mirror_root`.
+4. The robocopy log is parsed and any failed paths are appended to the fail list.
+
+### 4. Check the results
+
+- **Success:** The window closes after 5 seconds.
+- **Errors:** The window stays open and shows a summary. Check the log file at
+  `logs\mirror_YYYYMMDD_HHMM.log` for details.
+
+### 5. Schedule automatic mirrors (recommended)
+
+Use Windows Task Scheduler to run `Run_Mirror.bat` on your desired schedule:
+
+- **Action:** Start a program
+- **Program/script:** `C:\path\to\Win-UniMirror\Run_Mirror.bat`
+- **Start in:** `C:\path\to\Win-UniMirror`
+
+### Dry-run name sanitization (optional)
+
+To preview filename renames without applying them:
+
+```cmd
+python src\mirror_config.py "C:\YourSourceFolder" --dry-run
+```
+
+Remove `--dry-run` to apply the renames for real.
 
 ---
 
@@ -62,7 +127,7 @@ All settings are in the `MirrorSettings` dataclass in `src/mirror_config.py`.
 | `exclude_dirs` | *(see config)* | Directory names/patterns for `/xd` |
 | `exclude_files` | *(see config)* | File patterns for `/xf` |
 | `max_bytes` | `0` | Max file size to copy; `0` = no limit |
-| `log_file` | `logs/mirror.log` | Base log path (BAT appends timestamp) |
+| `log_file` | `logs/mirror.log` | Base log path (`Run_Mirror.bat` appends timestamp) |
 
 ### Name sanitization constants
 
@@ -71,6 +136,27 @@ All settings are in the `MirrorSettings` dataclass in `src/mirror_config.py`.
 | `MAX_PATH_SAFE` | `230` | Maximum full path length before truncation |
 | `MAX_NAME_LEN` | `150` | Maximum filename length after sanitization |
 | `INVALID_CHARS` | `` `,&;%^!()[]{}'`~@#$+=` `` | Characters replaced with `_` |
+
+---
+
+## `mirror_config.py` CLI modes
+
+`Run_Mirror.bat` drives `mirror_config.py` through these modes; they can also
+be run directly for scripting or debugging:
+
+```cmd
+python src\mirror_config.py --env
+    Emit all settings as KEY=VALUE lines (used internally by the .bat).
+
+python src\mirror_config.py --append-failures <log> <src1> [src2 ...]
+    Parse a robocopy log, append newly-failed paths to the fail list.
+
+python src\mirror_config.py --fail-filenames
+    Print basenames of fail-list entries (one per line), for robocopy /xf.
+
+python src\mirror_config.py <source_path> [--dry-run]
+    Sanitize file/dir names under source_path; --dry-run previews without renaming.
+```
 
 ---
 
@@ -89,8 +175,14 @@ the error report in the console window.
 
 ## Fail List
 
-`mirror_failures_to_exclude.txt` records the full path of any file robocopy
+`src/mirror_failures_to_exclude.txt` records the full path of any file robocopy
 could not copy. On subsequent runs, those filenames are automatically added to
 the robocopy `/xf` exclusion list so they do not cause repeated errors.
 
-To clear the fail list, delete or empty `mirror_failures_to_exclude.txt`.
+To clear the fail list, delete or empty `src/mirror_failures_to_exclude.txt`.
+
+---
+
+## License
+
+Apache License 2.0 — see [LICENSE](LICENSE).

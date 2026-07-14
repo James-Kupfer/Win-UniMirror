@@ -84,7 +84,7 @@ class MirrorSettings:
 
     source_folders: List[str] = field(default_factory=lambda: [
         r"C:\Documents",
-        r"C:\Beaker",
+        r"C:\Users\James Kupfer\Claude",
     ])
     mirror_root: str = r"O:\ProtonDrive\My files"
 
@@ -99,7 +99,7 @@ class MirrorSettings:
         "*KNIME*", "*RECYCLE*", "AppData", "Application Data", "*Cookies*",
         "Local Settings", "My Music", "My Pictures", "My Videos",
         "NetHood", "PrintHood", "Start Menu", "Cache",
-        "temp", r"Market Data\Raw",
+        "temp", "Market Data\Raw",
     ])
     exclude_files: List[str] = field(default_factory=lambda: [
         "*.tmp", "*.log", "*.bin",
